@@ -1,1 +1,177 @@
-<h1>黄杰</h1>
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://dimplejs.org/dist/dimple.v2.0.0.min.js"></script>
+    
+    <style>
+    
+      h2{
+      	text-align:center;
+      }
+      
+      div.buttons{
+      	position:fixed;
+      	top:100px;
+      	right:200px;
+      }
+      
+      div.buttons div{
+      	background-color:rgb(107,207,250);
+      	padding:20px;
+      	margin:10px;
+      }	
+  
+    </style>
+
+    <script type="text/javascript">
+
+
+	      function draw(data) {
+	        // D3.js setup code
+	        "use strict"
+	        // Add a title
+	        d3.select('body')
+	          .append('h2')
+	          .text("Baseball: Left or Right Hand?");
+
+	          //给体重分组
+	          for (let i=0;i<data.length;i++){
+	          	if(data[i]['weight']<=160){
+	          		data[i]['weight-1']='140-160'
+	          	}else if(data[i]['weight']<=180){
+	          		data[i]['weight-1']='160-180'
+	          	}else if (data[i]['weight']<=200){
+	          		data[i]['weight-1']='180-200'
+	          	}else if(data[i]['weight']<=220){
+	          		data[i]['weight-1']='200-220'
+	          	} else if (data[i]['weight']<=240){
+	          		data[i]['weight-1']='220-240'
+	          	}else{
+	          		data[i]['weight-1']='240+'
+	          	}
+	          	
+	          	//给avg分组
+	          	if(data[i]['avg']<=0.05){
+	          		data[i]['avg-1']='0-0.05'
+	          	} else if (data[i]['avg']<=0.10){
+	          		data[i]['avg-1']='0.10-0.15'
+	          	} else if (data[i]['avg']<=0.2) {
+	          		data[i]['avg-1']='0.15-0.2'
+	          	} else if (data[i]['avg']<=0.25) {
+	          		data[i]['avg-1']='0.2-0.25'
+	          	}  else if (data[i]['avg']<=0.3) {
+	          		data[i]['avg-1']='0.25-0.3'
+	          	} else if (data[i]['avg']<=0.35) {
+	          		data[i]['avg-1']='0.3-0.35'
+	          	} else  {
+	          		data[i]['avg-1']='0.35+'
+	          	} 
+	          }
+	
+	        var val = ['handedness','height', 'weight-1', 'avg-1'];
+	      	        
+        
+	        
+	        // Add a button
+	        var buttons = d3.select("body")
+	                        .append("div")
+	                        .attr("class", "buttons")
+	                        .selectAll("div")
+	                        .data(val)
+	                        .enter()
+	                        .append("div")
+	                        .text(function(d) {return d;
+	                        	});	
+	
+	        var svg = dimple.newSvg("body", 1280, 720);
+	
+	
+	        function update(val){
+	
+	          // Remove existed svg before update
+	          svg.selectAll("*").remove()
+	
+	          var myChart = new dimple.chart(svg, data);
+	          myChart.setBounds(300, 45, 800, 600);//设定边界
+	
+	          if (val != 'handedness') {
+	            var x = myChart.addCategoryAxis("x", [val, "handedness"]);
+	            x.title = val;
+	            
+	          } else {
+	            var x = myChart.addCategoryAxis("x", [val]);
+	          }
+	          
+	          
+	          
+	          x.addOrderRule(val);
+	          var x2 = myChart.addCategoryAxis("x", val)
+	          x2.addOrderRule(val);//设置x2的排列顺序
+	          x2.hidden = true;
+	
+	          var y1 = myChart.addMeasureAxis("y", "HR");
+	          
+	          var y2 = myChart.addMeasureAxis("y", "name");
+	          y1.title = "Average Homers Score(HR)";
+	          y2.title = "Total Number of Players";
+	
+	          
+	          var s = myChart.addSeries("handedness", dimple.plot.bar,[x,y1]);
+	          s.aggregate = dimple.aggregateMethod.avg;
+
+
+	          var l = myChart.addSeries(null, dimple.plot.line, [x2, y2]);
+	          var l = myChart.addSeries(null, dimple.plot.circle, [x2,y2]);
+	          l.lineMarkers = true;
+	
+	
+	          myChart.addLegend(300, 20, 800, 200, "right");
+	          myChart.draw(800);
+	        } ;
+	
+	
+	        //update('handedness', 'HR'); // 初始化图形
+	
+	
+	        buttons.on("click", function(d) {
+	          d3.select(".buttons")
+	            .selectAll("div")
+	            .transition()
+	            .duration(100)
+	            .style("color", "black")
+	            .style("background", "rgb(107, 207, 250)");
+	         
+	          d3.select(this)
+	            .transition()
+	            .duration(500)
+	            .style("color", "white")
+	            .style("background", "rgb(150, 107, 235)");
+	         
+	          update(d);
+	        });
+	
+	      update('handedness');
+	      }
+    
+
+    </script>
+  </head>
+<body>
+  <script type="text/javascript">
+  /*
+    Use D3 (not dimple.js) to load the TSV file
+    and pass the contents of it to the draw function
+    */
+  d3.csv("deal.csv",function(d){
+  	d['height'] = +d['height'];
+  	d['weight'] = +d['weight'];
+  	//d['wei'] = +d['wei'];
+  	d['avg'] = +d['avg'];
+  	d['HR'] = +d['HR'];
+  	return d;
+  },draw);
+  </script>
+</body>
+</html>
